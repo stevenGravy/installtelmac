@@ -30,7 +30,7 @@ installtelmac.sh -v 13.2.1
 installtelmac.sh -p teleport.example.com
 ```
 
-### Install with communication package (default is enterprise)
+### Install with community package (default is enterprise)
 ```bash
 installtelmac.sh -v 13.2.1 -e false
 ```
