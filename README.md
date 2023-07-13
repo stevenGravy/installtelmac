@@ -1,7 +1,7 @@
 # installtelmac.sh
 
-`installtelmac.sh` is used to install the Teleport pkg and then the signed `tsh` pkg for MacOS.
-`tsh` installed after so you get the signed version that enables touchid.
+`installtelmac.sh` is used to download & install the Teleport pkg and then the signed `tsh` pkg for MacOS.
+`tsh` installed after so you get the signed version that enables touchid. The pkgs are prompt to delete after installation.
 
 You can have it match to a specific Teleport proxy version or give a specific version.
 
