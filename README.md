@@ -8,7 +8,7 @@ You can have it match to a specific Teleport proxy version or give a specific ve
 ## To install:
 
 ```bash
-git clone https://github.com/stevenGravy/macinstall
+git clone https://github.com/stevenGravy/installtelmac
 cd macinstall
 chmod +x installtelmac.sh
 ```
