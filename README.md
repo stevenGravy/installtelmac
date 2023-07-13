@@ -9,7 +9,7 @@ You can have it match to a specific Teleport proxy version or give a specific ve
 
 ```bash
 git clone https://github.com/stevenGravy/installtelmac
-cd macinstall
+cd installtelmac
 chmod +x installtelmac.sh
 ```
 
