@@ -11,6 +11,7 @@ You can have it match to a specific Teleport proxy version or give a specific ve
 git clone https://github.com/stevenGravy/installtelmac
 cd installtelmac
 chmod +x installtelmac.sh
+sudo cp installtelmac.sh /usr/local/bin
 ```
 
 Copy `installtelmac.sh` to `/usr/local/bin` or another path.
