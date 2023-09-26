@@ -21,7 +21,7 @@ fi
 
 if [ "$proxy" != "" ]; then
   echo "Proxy is $proxy"
-  PROXY_VERSION=$(curl https://${proxy}/webapi/find | jq '.server_version')
+  PROXY_VERSION=$(curl --silent https://${proxy}/webapi/find | jq '.server_version')
   # remove double quotes
   PROXY_VERSION=${PROXY_VERSION//\"}
   version=${PROXY_VERSION}
@@ -45,9 +45,45 @@ else
   exit 1
 fi
 
+# Verify files exist
+
+checkurl () {
+
+HTTPCODE=$(curl --silent -I $1 | grep -E "^HTTP" | awk -F " " '{print $2}')
+if [ "$HTTPCODE" != "200" ]
+then 
+  echo "$1 unavailable. $2. Check version"
+  exit 1
+fi
+echo "Confirmed $1. $2."
+
+}
+
+# These are different since they won't return headers
+checksigurl () {
+
+SIG=$(curl --silent $1)
+if [[ "$SIG" == "" ]]
+then 
+  echo "$1 unavailable. $2. Check version"
+  exit 1
+fi
+echo "Confirmed $1. $2."
+
+}
+
+
+echo "Validating files for install"
+checksigurl "$signatureurl/teleport$entsegment-$version.pkg.sha256" "Used for confirming Teleport signature"
+checkurl "$contenturl/teleport$entsegment-$version.pkg" "Teleport package"
+checksigurl "$signatureurl/tsh-$version.pkg.sha256" "Used for confirming tsh signature"
+checkurl "$contenturl/tsh-$version.pkg" "tsh install package"
+
+
+
 
 echo -e "Getting signature from $signatureurl/teleport$entsegment-$version.pkg.sha256"
-SIGNATURE=$(curl $signatureurl/teleport$entsegment-$version.pkg.sha256)
+SIGNATURE=$(curl --silent $signatureurl/teleport$entsegment-$version.pkg.sha256)
 # Download Teleport pkg
 wget $contenturl/teleport$entsegment-$version.pkg
 FILE_SIG=$(shasum -a 256 teleport$entsegment-$version.pkg)
@@ -64,6 +100,7 @@ echo "Signature confirmed"
 echo "Install Teleport $version: sudo installer -pkg teleport$entsegment-$version.pkg -target /"
 sudo installer -pkg teleport$entsegment-$version.pkg -target /
 
+echo "Teleport version available:"
 teleport version
 
 echo "Getting signature from $signatureurl/tsh-$version.pkg.sha256"
