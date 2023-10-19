@@ -4,14 +4,16 @@ enterprise=true
 signatureurl=https://get.gravitational.com
 contenturl=https://cdn.teleport.dev
 deletewithoutconfirming=false
+checksum=true
 
-while getopts p:v:e:d: flag
+while getopts p:v:e:d:c: flag
 do
     case "${flag}" in
         p) proxy=${OPTARG};;
         v) version=${OPTARG};;
         e) enterprise=${OPTARG};;
         d) deletewithoutconfirming=${OPTARG};;
+        c) checksum=${OPTARG};;
     esac
 done
 
@@ -40,6 +42,7 @@ else
   echo " -v Teleport version to install"
   echo " -e Use enterprise version to install (default: true)"
   echo " -d Delete pkg files without confirming (default: false)"
+  echo " -c Checksum files before installing (default: true)"
   echo " "
   echo "Note: the install of .pkg files requires sudo rights"
   exit 1
@@ -55,7 +58,7 @@ then
   echo "$1 unavailable. $2. Check version"
   exit 1
 fi
-echo "Confirmed $1. $2."
+echo "Confirmed URL $1. $2."
 
 }
 
@@ -74,28 +77,40 @@ echo "Confirmed $1. $2."
 
 
 echo "Validating files for install"
-checksigurl "$signatureurl/teleport$entsegment-$version.pkg.sha256" "Used for confirming Teleport signature"
+if [ "$checksum" == "true" ]
+then
+  checksigurl "$signatureurl/teleport$entsegment-$version.pkg.sha256" "Used for confirming Teleport checksum"
+  checksigurl "$signatureurl/tsh-$version.pkg.sha256" "Used for confirming tsh checksum"
+else
+  echo "Skipping confirming checksum"
+fi
 checkurl "$contenturl/teleport$entsegment-$version.pkg" "Teleport package"
-checksigurl "$signatureurl/tsh-$version.pkg.sha256" "Used for confirming tsh signature"
 checkurl "$contenturl/tsh-$version.pkg" "tsh install package"
 
 
 
 
-echo -e "Getting signature from $signatureurl/teleport$entsegment-$version.pkg.sha256"
-SIGNATURE=$(curl --silent $signatureurl/teleport$entsegment-$version.pkg.sha256)
+if [ "$checksum" == "true" ]
+then
+  echo -e "Getting signature from $signatureurl/teleport$entsegment-$version.pkg.sha256"
+  SIGNATURE=$(curl --silent $signatureurl/teleport$entsegment-$version.pkg.sha256)
+fi
+
 # Download Teleport pkg
 wget $contenturl/teleport$entsegment-$version.pkg
-FILE_SIG=$(shasum -a 256 teleport$entsegment-$version.pkg)
 
-if [ "$SIGNATURE" != "$FILE_SIG" ]
+if [ "$checksum" == "true" ]
 then
-  echo "Mismatch in signatures for teleport"
-  echo "Signature: $SIGNATURE"
-  echo "File sig:  $FILE_SIG"
-  exit 0
+  FILE_SIG=$(shasum -a 256 teleport$entsegment-$version.pkg)
+  if [ "$SIGNATURE" != "$FILE_SIG" ]
+  then
+    echo "Mismatch in signatures for teleport"
+    echo "Signature: $SIGNATURE"
+    echo "File sig:  $FILE_SIG"
+    exit 0
+  fi
+  echo "Signature confirmed"
 fi
-echo "Signature confirmed"
 
 echo "Install Teleport $version: sudo installer -pkg teleport$entsegment-$version.pkg -target /"
 sudo installer -pkg teleport$entsegment-$version.pkg -target /
@@ -103,20 +118,27 @@ sudo installer -pkg teleport$entsegment-$version.pkg -target /
 echo "Teleport version available:"
 teleport version
 
-echo "Getting signature from $signatureurl/tsh-$version.pkg.sha256"
-SIGNATURE=$(curl $signatureurl/tsh-$version.pkg.sha256)
-# Download Teleport pkg
-wget $contenturl/tsh-$version.pkg
-FILE_SIG=$(shasum -a 256 tsh-$version.pkg)
-
-if [ "$SIGNATURE" != "$FILE_SIG" ]
+if [ "$checksum" == "true" ]
 then
-  echo "Mismatch in signatures for teleport"
-  echo "Signature: $SIGNATURE"
-  echo "File sig:  $FILE_SIG"
-  exit 0
+  echo "Getting signature from $signatureurl/tsh-$version.pkg.sha256"
+  SIGNATURE=$(curl $signatureurl/tsh-$version.pkg.sha256)
 fi
-echo "Signature confirmed"
+
+# Download tsh pkg
+wget $contenturl/tsh-$version.pkg
+
+if [ "$checksum" == "true" ]
+then
+  FILE_SIG=$(shasum -a 256 tsh-$version.pkg)
+  if [ "$SIGNATURE" != "$FILE_SIG" ]
+  then
+    echo "Mismatch in signatures for teleport"
+    echo "Signature: $SIGNATURE"
+    echo "File sig:  $FILE_SIG"
+    exit 0
+  fi
+  echo "Signature confirmed"
+fi
 
 echo "Install Teleport tsh $version: sudo installer -pkg tsh-$version.pkg -target /"
 sudo installer -pkg tsh-$version.pkg -target /
