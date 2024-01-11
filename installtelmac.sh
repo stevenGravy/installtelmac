@@ -1,7 +1,7 @@
 #!/bin/bash
 # See README at https://github.com/stevenGravy/installtelmac
 enterprise=true
-signatureurl=https://get.gravitational.com
+signatureurl=https://cdn.teleport.dev
 contenturl=https://cdn.teleport.dev
 deletewithoutconfirming=false
 checksum=true
