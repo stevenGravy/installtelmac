@@ -6,6 +6,23 @@ contenturl=https://cdn.teleport.dev
 deletewithoutconfirming=false
 checksum=true
 
+# function to check whether a named program exists
+check_exists() {
+    NAME=$1
+    if type "${NAME}" >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+for BINARY in curl jq shasum wget; do
+    if ! check_exists ${BINARY}; then
+        echo "${BINARY} must be installed, it was not found"
+        exit 1
+    fi
+done
+
 while getopts p:v:e:d:c: flag
 do
     case "${flag}" in
