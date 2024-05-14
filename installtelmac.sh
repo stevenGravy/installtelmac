@@ -16,7 +16,7 @@ check_exists() {
     fi
 }
 
-for BINARY in curl jq shasum wget; do
+for BINARY in curl jq shasum ; do
     if ! check_exists ${BINARY}; then
         echo "${BINARY} must be installed, it was not found"
         exit 1
@@ -114,7 +114,8 @@ then
 fi
 
 # Download Teleport pkg
-wget $contenturl/teleport$entsegment-$version.pkg
+echo -e "Downloading Teleport pkg"
+curl -O $contenturl/teleport$entsegment-$version.pkg
 
 if [ "$checksum" == "true" ]
 then
@@ -142,7 +143,8 @@ then
 fi
 
 # Download tsh pkg
-wget $contenturl/tsh-$version.pkg
+echo -e "Downloading Teleport tsh pkg"
+curl -O $contenturl/tsh-$version.pkg
 
 if [ "$checksum" == "true" ]
 then
