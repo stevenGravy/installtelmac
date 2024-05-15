@@ -16,7 +16,8 @@ check_exists() {
     fi
 }
 
-for BINARY in curl jq shasum ; do
+# check for jq is moved down to proxy option. not needed in most flows
+for BINARY in curl shasum ; do
     if ! check_exists ${BINARY}; then
         echo "${BINARY} must be installed, it was not found"
         exit 1
@@ -39,6 +40,12 @@ if [ "$enterprise" = "true" ]; then
 fi
 
 if [ "$proxy" != "" ]; then
+  for BINARY in  jq ; do
+    if ! check_exists ${BINARY}; then
+        echo "${BINARY} must be installed, it was not found"
+        exit 1
+    fi
+  done
   echo "Proxy is $proxy"
   PROXY_VERSION=$(curl --silent https://${proxy}/webapi/find | jq '.server_version')
   # remove double quotes
