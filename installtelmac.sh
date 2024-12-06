@@ -190,24 +190,25 @@ then
   echo "Install Teleport tsh $version: sudo installer -pkg tsh-$version.pkg -target /"
   sudo installer -pkg tsh-$version.pkg -target /
 
-  tsh version
-  echo "Confirm Touch ID enabled"
-  tsh touchid diag
 fi
+echo " "
+echo "Version confirmation"
+tsh version
+echo " "
+echo "Confirm Touch ID enabled"
+tsh touchid diag
 
 echo " "
 if [ "$deletewithoutconfirming" = "false" ]; then
   echo "Successful install. Confirm removing packages"
   rm -i teleport$entsegment-$version.pkg
-  if [ "$installtshpkg" == "true" ]
-  then
+  if [ "$installtshpkg" == "true" ]; then
     rm -i tsh-$version.pkg
   fi
 else 
   echo "Successful install. Removing pkg files"
-  rm teleport$entsegment-$version.pkg tsh-$version.pkg
-  if [ "$installtshpkg" == "true" ]
-  then
+  rm teleport$entsegment-$version.pkg
+  if [ "$installtshpkg" == "true" ]; then
     rm tsh-$version.pkg
   fi
 fi
