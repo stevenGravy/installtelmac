@@ -103,7 +103,7 @@ echo "Confirmed URL $1. $2."
 checksigurl () {
 
 SIG=$(curl --silent $1)
-if [[ "$SIG" == "" ]]
+if [[ "$SIG" == "" || "$SIG" == *"The specified key does not exist"* ]]
 then 
   echo "$1 unavailable. $2. Check version"
   exit 1
