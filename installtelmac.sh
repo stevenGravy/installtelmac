@@ -37,6 +37,8 @@ do
     esac
 done
 
+WORKDIR=$(mktemp -d)
+
 if [ "$enterprise" = "true" ]; then
    entsegment=-ent
 fi
@@ -140,12 +142,12 @@ then
 fi
 
 # Download Teleport pkg
-echo -e "Downloading Teleport pkg"
-curl -O $contenturl/teleport$entsegment-$version.pkg
+echo -e "Downloading Teleport pkg to $WORKDIR"
+curl -o "$WORKDIR/teleport$entsegment-$version.pkg" $contenturl/teleport$entsegment-$version.pkg
 
 if [ "$checksum" == "true" ]
 then
-  FILE_SIG=$(shasum -a 256 teleport$entsegment-$version.pkg)
+  FILE_SIG=$(cd "$WORKDIR" && shasum -a 256 teleport$entsegment-$version.pkg)
   if [ "$SIGNATURE" != "$FILE_SIG" ]
   then
     echo "Mismatch in signatures for teleport"
@@ -156,8 +158,8 @@ then
   echo "Signature confirmed"
 fi
 
-echo "Install Teleport $version: sudo installer -pkg teleport$entsegment-$version.pkg -target /"
-sudo installer -pkg teleport$entsegment-$version.pkg -target /
+echo "Install Teleport $version: sudo installer -pkg $WORKDIR/teleport$entsegment-$version.pkg -target /"
+sudo installer -pkg "$WORKDIR/teleport$entsegment-$version.pkg" -target /
 
 echo "Teleport version available:"
 teleport version
@@ -171,12 +173,12 @@ then
   fi
 
   # Download tsh pkg
-  echo -e "Downloading Teleport tsh pkg"
-  curl -O $contenturl/tsh-$version.pkg
+  echo -e "Downloading Teleport tsh pkg to $WORKDIR"
+  curl -o "$WORKDIR/tsh-$version.pkg" $contenturl/tsh-$version.pkg
 
   if [ "$checksum" == "true" ]
   then
-    FILE_SIG=$(shasum -a 256 tsh-$version.pkg)
+    FILE_SIG=$(cd "$WORKDIR" && shasum -a 256 tsh-$version.pkg)
     if [ "$SIGNATURE" != "$FILE_SIG" ]
     then
       echo "Mismatch in signatures for teleport"
@@ -187,8 +189,8 @@ then
     echo "Signature confirmed"
   fi
 
-  echo "Install Teleport tsh $version: sudo installer -pkg tsh-$version.pkg -target /"
-  sudo installer -pkg tsh-$version.pkg -target /
+  echo "Install Teleport tsh $version: sudo installer -pkg $WORKDIR/tsh-$version.pkg -target /"
+  sudo installer -pkg "$WORKDIR/tsh-$version.pkg" -target /
 
 fi
 echo " "
@@ -201,16 +203,14 @@ tsh touchid diag
 echo " "
 if [ "$deletewithoutconfirming" = "false" ]; then
   echo "Successful install. Confirm removing packages"
-  rm -i teleport$entsegment-$version.pkg
+  rm -i "$WORKDIR/teleport$entsegment-$version.pkg"
   if [ "$installtshpkg" == "true" ]; then
-    rm -i tsh-$version.pkg
+    rm -i "$WORKDIR/tsh-$version.pkg"
   fi
-else 
+  rmdir "$WORKDIR" 2>/dev/null
+else
   echo "Successful install. Removing pkg files"
-  rm teleport$entsegment-$version.pkg
-  if [ "$installtshpkg" == "true" ]; then
-    rm tsh-$version.pkg
-  fi
+  rm -rf "$WORKDIR"
 fi
 
 
