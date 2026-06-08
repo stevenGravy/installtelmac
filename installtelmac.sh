@@ -3,7 +3,6 @@
 enterprise=true
 signatureurl=https://cdn.teleport.dev
 contenturl=https://cdn.teleport.dev
-deletewithoutconfirming=true
 checksum=true
 installtshpkg=true
 
@@ -25,13 +24,12 @@ for BINARY in curl shasum ; do
     fi
 done
 
-while getopts p:v:e:d:c:i: flag
+while getopts p:v:e:c:i: flag
 do
     case "${flag}" in
         p) proxy=${OPTARG};;
         v) version=${OPTARG};;
         e) enterprise=${OPTARG};;
-        d) deletewithoutconfirming=${OPTARG};;
         c) checksum=${OPTARG};;
         i) installtshpkg=${OPTARG};;
     esac
@@ -63,13 +61,12 @@ else
   echo "automatically in order so the signed tsh is done after Teleport. Pkg"
   echo "file signatures are confimed prior to installation."
   echo " "
-  echo "usage: installtelmac.sh [-p proxy.example.com] [-v 13.2.1] [-e true|false] [-d true|false]"
+  echo "usage: installtelmac.sh [-p proxy.example.com] [-v 13.2.1] [-e true|false]"
   echo  "Install the Teleport version to match the proxy or"
   echo "   match to a specific version. "
   echo " -p Teleport proxy"
   echo " -v Teleport version to install"
   echo " -e Use enterprise version to install (default: true)"
-  echo " -d Delete pkg files without confirming (default: true)"
   echo " -c Checksum files before installing (default: true)"
   echo " -i Install tsh pkg (default: true for <v17 versions)"
   echo " "
@@ -201,17 +198,8 @@ echo "Confirm Touch ID enabled"
 tsh touchid diag
 
 echo " "
-if [ "$deletewithoutconfirming" = "false" ]; then
-  echo "Successful install. Confirm removing packages"
-  rm -i "$WORKDIR/teleport$entsegment-$version.pkg"
-  if [ "$installtshpkg" == "true" ]; then
-    rm -i "$WORKDIR/tsh-$version.pkg"
-  fi
-  rmdir "$WORKDIR" 2>/dev/null
-else
-  echo "Successful install. Removing pkg files"
-  rm -rf "$WORKDIR"
-fi
+echo "Successful install. Removing pkg files"
+rm -rf "$WORKDIR"
 
 
 echo "Install complete of version: $version!"
